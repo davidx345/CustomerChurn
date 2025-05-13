@@ -1,0 +1,55 @@
+/* static/style.css: Simple styling for churn prediction form */
+body {
+    font-family: Arial, sans-serif;
+    background: #f4f6fa;
+    margin: 0;
+    padding: 0;
+}
+.container {
+    max-width: 400px;
+    margin: 40px auto;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    padding: 24px 32px 32px 32px;
+}
+h2 {
+    text-align: center;
+    margin-bottom: 24px;
+}
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+label {
+    display: flex;
+    flex-direction: column;
+    font-size: 15px;
+    margin-bottom: 4px;
+}
+input, select {
+    padding: 6px 8px;
+    border: 1px solid #bbb;
+    border-radius: 4px;
+    font-size: 15px;
+}
+button {
+    margin-top: 12px;
+    padding: 10px;
+    background: #1976d2;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+button:hover {
+    background: #125ea2;
+}
+#result {
+    margin-top: 18px;
+    font-size: 16px;
+    text-align: center;
+}
