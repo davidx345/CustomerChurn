@@ -1,0 +1,31 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Dataset (large file)
+Bank Customer Churn Prediction.csv
+
+# Model files (can be regenerated)
+*.pkl
+# Uncomment if you want to include the trained model in your repository
+# !churn_model.pkl
+
+# Generated visualizations (can be regenerated)
+# Uncomment if you want to include the visualization in your repository
+# !feature_importance.png
+
+# Virtual Environment
+venv/
+env/
+.env/
+
+# IDE files
+.vscode/
+.idea/
+
+# Logs
+*.log
+
+# Local configuration
+.DS_Store
