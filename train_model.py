@@ -47,6 +47,7 @@ y_proba = model.predict_proba(X_test)[:, 1]
 acc = accuracy_score(y_test, y_pred)
 cm = confusion_matrix(y_test, y_pred)
 roc_auc = roc_auc_score(y_test, y_proba)
+class_report = classification_report(y_test, y_pred, output_dict=True) # Save as dict
 
 print(f"Accuracy: {acc:.4f}")
 print(f"ROC AUC: {roc_auc:.4f}")
@@ -63,12 +64,20 @@ plt.tight_layout()
 plt.savefig('feature_importance.png')
 plt.close()
 
-# Save model and preprocessors
+# Save model, preprocessors, and performance metrics
+performance_metrics = {
+    'accuracy': acc,
+    'roc_auc': roc_auc,
+    'confusion_matrix': cm.tolist(),  # Convert numpy array to list for JSON serialization
+    'classification_report': class_report
+}
+
 joblib.dump({
     'model': model,
     'scaler': scaler,
     'le_gender': le_gender,
     'le_geo': le_geo,
-    'features': features
+    'features': features,
+    'performance_metrics': performance_metrics # Add metrics to the bundle
 }, 'churn_model.pkl')
-print('Model and preprocessors saved to churn_model.pkl')
+print('Model, preprocessors, and performance metrics saved to churn_model.pkl')

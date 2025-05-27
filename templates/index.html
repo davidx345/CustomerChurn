@@ -4,83 +4,636 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bank Customer Churn Prediction</title>
-    <link rel="stylesheet" href="/static/style.css">
+    <title>Customer Churn Prediction</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-    <div class="container">
-        <h2>Bank Customer Churn Prediction</h2>
-        <form id="churnForm">
-            <label>Credit Score: <input type="number" name="CreditScore" required></label>
-            <label>Geography:
-                <select name="Geography" required>
-                    <option value="France">France</option>
-                    <option value="Spain">Spain</option>
-                    <option value="Germany">Germany</option>
-                </select>
-            </label>
-            <label>Gender:
-                <select name="Gender" required>
-                    <option value="Male">Male</option>
-                    <option value="Female">Female</option>
-                </select>
-            </label>
-            <label>Age: <input type="number" name="Age" required></label>
-            <label>Tenure: <input type="number" name="Tenure" required></label>
-            <label>Balance: <input type="number" name="Balance" step="0.01" required></label>
-            <label>Num Of Products: <input type="number" name="NumOfProducts" required></label>
-            <label>Has Credit Card:
-                <select name="HasCrCard" required>
-                    <option value="1">Yes</option>
-                    <option value="0">No</option>
-                </select>
-            </label>
-            <label>Is Active Member:
-                <select name="IsActiveMember" required>
-                    <option value="1">Yes</option>
-                    <option value="0">No</option>
-                </select>
-            </label>
-            <label>Estimated Salary: <input type="number" name="EstimatedSalary" step="0.01" required></label>
-            <button type="submit">Predict</button>
-        </form>
-        <div id="result"></div>
+    <div class="container-fluid mt-5 px-md-5"> <!-- Changed container to container-fluid and added padding -->
+        <h1 class="text-center mb-4">Customer Churn Prediction</h1>
+
+        <!-- Single Prediction Form -->
+        <div class="row">
+            <div class="col-lg-8 mx-auto"> <!-- Center content and limit width on larger screens -->
+                <div class="card mb-4 shadow-sm"> <!-- Added shadow-sm for subtle depth -->
+                    <div class="card-header bg-primary text-white"> <!-- Enhanced card header -->
+                        <h2>Single Customer Prediction</h2>
+                    </div>
+                    <div class="card-body">
+                        <form id="churnForm" class="needs-validation" novalidate>
+                            <div class="form-row">
+                                <div class="form-group col-md-6">
+                                    <label for="creditScore">Credit Score</label>
+                                    <input type="number" class="form-control" id="creditScore" name="CreditScore" placeholder="e.g., 650" required>
+                                    <div class="invalid-feedback">Please enter a valid credit score.</div>
+                                </div>
+                                <div class="form-group col-md-6">
+                                    <label for="age">Age</label>
+                                    <input type="number" class="form-control" id="age" name="Age" placeholder="e.g., 35" required>
+                                    <div class="invalid-feedback">Please enter a valid age.</div>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group col-md-6">
+                                    <label for="tenure">Tenure (years)</label>
+                                    <input type="number" class="form-control" id="tenure" name="Tenure" placeholder="e.g., 5" required>
+                                    <div class="invalid-feedback">Please enter a valid tenure.</div>
+                                </div>
+                                <div class="form-group col-md-6">
+                                    <label for="balance">Balance</label>
+                                    <input type="number" step="0.01" class="form-control" id="balance" name="Balance" placeholder="e.g., 50000.00" required>
+                                    <div class="invalid-feedback">Please enter a valid balance.</div>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group col-md-6">
+                                    <label for="numProducts">Number of Products</label>
+                                    <input type="number" class="form-control" id="numProducts" name="NumOfProducts" placeholder="e.g., 1" required>
+                                    <div class="invalid-feedback">Please enter a valid number of products.</div>
+                                </div>
+                                <div class="form-group col-md-6">
+                                    <label for="hasCrCard">Has Credit Card?</label>
+                                    <select class="form-control" id="hasCrCard" name="HasCrCard" required>
+                                        <option value="">Choose...</option>
+                                        <option value="1">Yes</option>
+                                        <option value="0">No</option>
+                                    </select>
+                                    <div class="invalid-feedback">Please select an option.</div>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group col-md-6">
+                                    <label for="isActiveMember">Is Active Member?</label>
+                                    <select class="form-control" id="isActiveMember" name="IsActiveMember" required>
+                                        <option value="">Choose...</option>
+                                        <option value="1">Yes</option>
+                                        <option value="0">No</option>
+                                    </select>
+                                    <div class="invalid-feedback">Please select an option.</div>
+                                </div>
+                                <div class="form-group col-md-6">
+                                    <label for="estimatedSalary">Estimated Salary</label>
+                                    <input type="number" step="0.01" class="form-control" id="estimatedSalary" name="EstimatedSalary" placeholder="e.g., 75000.00" required>
+                                    <div class="invalid-feedback">Please enter a valid estimated salary.</div>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                 <div class="form-group col-md-6">
+                                    <label for="geography">Geography</label>
+                                    <select class="form-control" id="geography" name="Geography" required>
+                                        <option value="">Choose...</option>
+                                        <option value="France">France</option>
+                                        <option value="Spain">Spain</option>
+                                        <option value="Germany">Germany</option>
+                                    </select>
+                                    <div class="invalid-feedback">Please select a geography.</div>
+                                </div>
+                                <div class="form-group col-md-6">
+                                    <label for="gender">Gender</label>
+                                    <select class="form-control" id="gender" name="Gender" required>
+                                        <option value="">Choose...</option>
+                                        <option value="Male">Male</option>
+                                        <option value="Female">Female</option>
+                                    </select>
+                                    <div class="invalid-feedback">Please select a gender.</div>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-block">Predict Churn</button>
+                        </form>
+                        <div id="predictionResult" class="mt-3 alert" style="display:none;"></div>
+                        <div id="shapExplanation" class="mt-3" style="display:none;">
+                            <h4>SHAP Value Explanation (Local Feature Importance)</h4>
+                            <canvas id="shapChart" width="400" height="200"></canvas>
+                            <p><small>SHAP values indicate the contribution of each feature to this specific prediction compared to the average. Positive values push the prediction towards churn, negative values push away from churn.</small></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Batch Prediction Form -->
+        <div class="row mt-4">
+            <div class="col-lg-8 mx-auto">
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-header bg-success text-white"> <!-- Enhanced card header -->
+                        <h2>Batch Prediction via CSV Upload</h2>
+                    </div>
+                    <div class="card-body">
+                        <form id="batchChurnForm" class="needs-validation" novalidate enctype="multipart/form-data">
+                            <div class="form-group">
+                                <label for="csvFile">Upload CSV File</label>
+                                <input type="file" class="form-control-file" id="csvFile" name="csvFile" accept=".csv" required>
+                                <div class="invalid-feedback">Please select a CSV file.</div>
+                            </div>
+                            <button type="submit" class="btn btn-success btn-block">Predict Churn for Batch</button>
+                        </form>
+                        <div id="batchPredictionResult" class="mt-3" style="display:none;">
+                            <h4>Batch Results:</h4>
+                            <a id="downloadBatchResult" class="btn btn-info" href="#" download="batch_predictions.csv">Download Results</a>
+                            <div id="batchError" class="mt-2 alert alert-danger" style="display:none;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Visualizations Row -->
+        <div class="row mt-4">
+            <!-- Global Feature Importance -->
+            <div class="col-lg-6 mb-4"> <!-- Adjusted column for side-by-side layout -->
+                <div class="card shadow-sm h-100"> <!-- Added h-100 for equal height cards -->
+                    <div class="card-header bg-info text-white"> <!-- Enhanced card header -->
+                        <h2>Global Model Feature Importance</h2>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="globalFeatureImportanceChart" width="400" height="200"></canvas>
+                        <p id="globalFeatureImportanceError" class="alert alert-warning" style="display:none;"></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Model Performance Dashboard -->
+            <div class="col-lg-6 mb-4"> <!-- Adjusted column for side-by-side layout -->
+                <div class="card shadow-sm h-100">
+                    <div class="card-header bg-secondary text-white"> <!-- Enhanced card header -->
+                        <h2>Model Performance Dashboard</h2>
+                    </div>
+                    <div class="card-body">
+                        <div id="performanceMetricsError" class="alert alert-warning" style="display:none;"></div>
+                        <div id="performanceMetricsContainer">
+                            <p><strong>Accuracy:</strong> <span id="accuracyValue">-</span></p>
+                            <p><strong>ROC AUC Score:</strong> <span id="rocAucValue">-</span></p>
+                            
+                            <h4>Confusion Matrix</h4>
+                            <table class="table table-bordered" id="confusionMatrixTable">
+                                <thead>
+                                    <tr>
+                                        <th></th>
+                                        <th>Predicted Negative (0)</th>
+                                        <th>Predicted Positive (1)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><strong>Actual Negative (0)</strong></td>
+                                        <td id="cmTN">-</td>
+                                        <td id="cmFP">-</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Actual Positive (1)</strong></td>
+                                        <td id="cmFN">-</td>
+                                        <td id="cmTP">-</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+
+                            <h4>Classification Report</h4>
+                            <table class="table table-bordered" id="classificationReportTable">
+                                <thead>
+                                    <tr>
+                                        <th>Metric</th>
+                                        <th>Precision</th>
+                                        <th>Recall</th>
+                                        <th>F1-Score</th>
+                                        <th>Support</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Rows will be added by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Prediction History & What-if Scenarios -->
+        <div class="row mt-4">
+            <div class="col-lg-8 mx-auto">
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-warning text-dark"> <!-- Enhanced card header -->
+                        <h2>Prediction History (Last 5)</h2>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-group" id="predictionHistoryList"></ul>
+                        <p id="noHistoryMessage" class="text-muted" style="display:none;">No prediction history yet.</p>
+                        <button id="clearHistoryBtn" class="btn btn-sm btn-danger mt-2" style="display:none;">Clear History</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <script>
-    document.getElementById('churnForm').onsubmit = async function(e) {
-        e.preventDefault();
-        const form = e.target;
-        const data = {};
-        for (const el of form.elements) {
-            if (el.name) data[el.name] = el.value;
-        }
-        // Convert numeric fields
-        data.CreditScore = Number(data.CreditScore);
-        data.Age = Number(data.Age);
-        data.Tenure = Number(data.Tenure);
-        data.Balance = Number(data.Balance);
-        data.NumOfProducts = Number(data.NumOfProducts);
-        data.HasCrCard = Number(data.HasCrCard);
-        data.IsActiveMember = Number(data.IsActiveMember);
-        data.EstimatedSalary = Number(data.EstimatedSalary);
-        document.getElementById('result').textContent = 'Predicting...';
-        try {
-            const res = await fetch('/predict', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify(data)
-            });
-            const out = await res.json();
-            if (out.error) {
-                document.getElementById('result').textContent = 'Error: ' + out.error;
-            } else {
-                document.getElementById('result').innerHTML =
-                    `<b>Prediction:</b> ${out.prediction}<br><b>Probability:</b> ${(out.probability*100).toFixed(2)}%`;
+        // Client-side validation using Bootstrap
+        (function() {
+            'use strict';
+            window.addEventListener('load', function() {
+                var forms = document.querySelectorAll('.needs-validation');
+                Array.prototype.forEach.call(forms, function(form) {
+                    form.addEventListener('submit', function(event) {
+                        if (!form.checkValidity()) {
+                            event.preventDefault();
+                            event.stopPropagation();
+                        }
+                        form.classList.add('was-validated');
+                    }, false);
+                });
+            }, false);
+        })();
+
+        let shapChartInstance = null;
+        let globalFeatureImportanceChartInstance = null;
+        const MAX_HISTORY_ITEMS = 5;
+
+        // Single Prediction
+        document.getElementById('churnForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+            this.classList.add('was-validated');
+            if (!this.checkValidity()) {
+                return;
             }
-        } catch (err) {
-            document.getElementById('result').textContent = 'Error: ' + err;
+
+            const formData = new FormData(this);
+            const data = {};
+            formData.forEach((value, key) => {
+                // Ensure correct parsing for numeric fields, especially those that can be non-integers
+                if (key === 'CreditScore' || key === 'Age' || key === 'Tenure' || key === 'NumOfProducts') {
+                    data[key] = parseInt(value, 10); // Or parseFloat if decimals are possible and intended
+                } else if (key === 'Balance' || key === 'EstimatedSalary') {
+                    data[key] = parseFloat(value);
+                } else if (key === 'HasCrCard' || key === 'IsActiveMember') {
+                    data[key] = parseInt(value, 10); // These are 0 or 1
+                }
+                 else {
+                    data[key] = value; // For Geography, Gender
+                }
+            });
+
+            const resultDiv = document.getElementById('predictionResult');
+            const shapDiv = document.getElementById('shapExplanation');
+            resultDiv.style.display = 'none';
+            shapDiv.style.display = 'none';
+
+            try {
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    resultDiv.className = 'mt-3 alert alert-success';
+                    let predictionText = result.churn_prediction === 1 ? "Likely to Churn" : "Unlikely to Churn";
+                    resultDiv.innerHTML = `<strong>Prediction:</strong> ${predictionText} (Probability: ${result.churn_probability.toFixed(4)})`;
+                    
+                    // Save to history
+                    savePredictionToHistory(data, { 
+                        prediction_text: predictionText, 
+                        churn_probability: result.churn_probability,
+                        // We could also save SHAP values here if needed for history re-display
+                    });
+                    renderPredictionHistory();
+
+                    // SHAP Values Chart
+                    if (result.shap_values && typeof result.shap_values === 'object' && !result.shap_values.error) {
+                        shapDiv.style.display = 'block';
+                        const shapFeatures = Object.keys(result.shap_values);
+                        const shapValues = Object.values(result.shap_values);
+                        
+                        const shapCtx = document.getElementById('shapChart').getContext('2d');
+                        if (shapChartInstance) {
+                            shapChartInstance.destroy(); 
+                        }
+                        shapChartInstance = new Chart(shapCtx, {
+                            type: 'bar',
+                            data: {
+                                labels: shapFeatures,
+                                datasets: [{
+                                    label: 'SHAP Value',
+                                    data: shapValues,
+                                    backgroundColor: shapValues.map(val => val > 0 ? 'rgba(255, 99, 132, 0.7)' : 'rgba(75, 192, 192, 0.7)'),
+                                    borderColor: shapValues.map(val => val > 0 ? 'rgba(255, 99, 132, 1)' : 'rgba(75, 192, 192, 1)'),
+                                    borderWidth: 1
+                                }]
+                            },
+                            options: {
+                                indexAxis: 'y',
+                                scales: {
+                                    x: {
+                                        beginAtZero: false, 
+                                        title: {
+                                            display: true,
+                                            text: 'SHAP Value (Impact on Model Output)'
+                                        }
+                                    },
+                                    y: {
+                                        beginAtZero: true
+                                    }
+                                },
+                                responsive: true,
+                                maintainAspectRatio: false
+                            }
+                        });
+                    } else if (result.shap_values && result.shap_values.error) {
+                        shapDiv.style.display = 'block';
+                        document.getElementById('shapChart').style.display = 'none'; 
+                        shapDiv.innerHTML = `<p class="alert alert-warning">Could not display SHAP values: ${result.shap_values.error}</p>`; 
+                    } else {
+                        shapDiv.style.display = 'none';
+                    }
+                } else {
+                    resultDiv.className = 'mt-3 alert alert-danger';
+                    resultDiv.innerHTML = `<strong>Error:</strong> ${result.error || 'Prediction failed'}`;
+                    shapDiv.style.display = 'none';
+                }
+            } catch (error) {
+                resultDiv.className = 'mt-3 alert alert-danger';
+                resultDiv.innerHTML = `<strong>Error:</strong> ${error.message}`;
+                shapDiv.style.display = 'none';
+            }
+            resultDiv.style.display = 'block';
+        });
+
+        // Batch Prediction
+        document.getElementById('batchChurnForm').addEventListener('submit', async function(event) {
+            event.preventDefault(); // Also handled by validation listener
+            // Validation is now handled by the generic listener above
+            // if (!this.checkValidity()) {
+            //     return;
+            // }
+
+            const formData = new FormData(this);
+            const batchResultDiv = document.getElementById('batchPredictionResult');
+            const batchErrorDiv = document.getElementById('batchError');
+            const downloadLink = document.getElementById('downloadBatchResult');
+
+            batchResultDiv.style.display = 'none';
+            batchErrorDiv.style.display = 'none';
+
+            try {
+                const response = await fetch('/batch_predict', {
+                    method: 'POST',
+                    body: formData // No 'Content-Type' header for FormData with files
+                });
+
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    downloadLink.href = url;
+                    batchResultDiv.style.display = 'block';
+                } else {
+                    const result = await response.json();
+                    batchErrorDiv.textContent = `Error: ${result.error || 'Batch prediction failed'}`;
+                    batchErrorDiv.style.display = 'block';
+                }
+            } catch (error) {
+                batchErrorDiv.textContent = `Error: ${error.message}`;
+                batchErrorDiv.style.display = 'block';
+            }
+        });
+
+        // Fetch and display Global Feature Importance
+        async function fetchGlobalFeatureImportance() {
+            const errorDiv = document.getElementById('globalFeatureImportanceError');
+            const chartCanvas = document.getElementById('globalFeatureImportanceChart');
+            errorDiv.style.display = 'none';
+
+            try {
+                const response = await fetch('/api/feature_importance');
+                const data = await response.json();
+
+                if (response.ok) {
+                    chartCanvas.style.display = 'block';
+                    const ctx = chartCanvas.getContext('2d');
+                    if (globalFeatureImportanceChartInstance) {
+                        globalFeatureImportanceChartInstance.destroy();
+                    }
+                    globalFeatureImportanceChartInstance = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: data.features,
+                            datasets: [{
+                                label: 'Global Feature Importance',
+                                data: data.importances,
+                                backgroundColor: 'rgba(54, 162, 235, 0.7)',
+                                borderColor: 'rgba(54, 162, 235, 1)',
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            indexAxis: 'y',
+                            scales: {
+                                x: {
+                                    beginAtZero: true,
+                                    title: {
+                                        display: true,
+                                        text: 'Importance Score'
+                                    }
+                                }
+                            },
+                            responsive: true,
+                            maintainAspectRatio: false
+                        }
+                    });
+                } else {
+                    chartCanvas.style.display = 'none';
+                    errorDiv.textContent = `Error: ${data.error || 'Could not load feature importances.'}`;
+                    errorDiv.style.display = 'block';
+                }
+            } catch (error) {
+                chartCanvas.style.display = 'none';
+                errorDiv.textContent = `Error: ${error.message}`;
+                errorDiv.style.display = 'block';
+            }
         }
-    };
+
+        // Fetch and display Model Performance Metrics
+        async function fetchModelPerformance() {
+            const errorDiv = document.getElementById('performanceMetricsError');
+            const metricsContainer = document.getElementById('performanceMetricsContainer');
+            errorDiv.style.display = 'none';
+
+            try {
+                const response = await fetch('/api/model_performance');
+                const data = await response.json();
+
+                if (response.ok) {
+                    metricsContainer.style.display = 'block';
+                    document.getElementById('accuracyValue').textContent = data.accuracy !== undefined ? data.accuracy.toFixed(4) : 'N/A';
+                    document.getElementById('rocAucValue').textContent = data.roc_auc !== undefined ? data.roc_auc.toFixed(4) : 'N/A';
+
+                    // Confusion Matrix
+                    if (data.confusion_matrix && data.confusion_matrix.length === 2 && data.confusion_matrix[0].length === 2) {
+                        document.getElementById('cmTN').textContent = data.confusion_matrix[0][0]; // True Negative
+                        document.getElementById('cmFP').textContent = data.confusion_matrix[0][1]; // False Positive
+                        document.getElementById('cmFN').textContent = data.confusion_matrix[1][0]; // False Negative
+                        document.getElementById('cmTP').textContent = data.confusion_matrix[1][1]; // True Positive
+                    } else {
+                        document.getElementById('cmTN').textContent = 'N/A';
+                        document.getElementById('cmFP').textContent = 'N/A';
+                        document.getElementById('cmFN').textContent = 'N/A';
+                        document.getElementById('cmTP').textContent = 'N/A';
+                    }
+
+                    // Classification Report
+                    const reportTableBody = document.getElementById('classificationReportTable').getElementsByTagName('tbody')[0];
+                    reportTableBody.innerHTML = ''; // Clear previous rows
+
+                    if (data.classification_report) {
+                        for (const className in data.classification_report) {
+                            if (typeof data.classification_report[className] === 'object') {
+                                const metrics = data.classification_report[className];
+                                const row = reportTableBody.insertRow();
+                                row.insertCell().textContent = className;
+                                row.insertCell().textContent = metrics.precision !== undefined ? metrics.precision.toFixed(4) : 'N/A';
+                                row.insertCell().textContent = metrics.recall !== undefined ? metrics.recall.toFixed(4) : 'N/A';
+                                row.insertCell().textContent = metrics['f1-score'] !== undefined ? metrics['f1-score'].toFixed(4) : 'N/A';
+                                row.insertCell().textContent = metrics.support !== undefined ? metrics.support : 'N/A';
+                            } else if (className === 'accuracy') { // Handle overall accuracy if present directly
+                                // This is usually separate, but some reports might include it.
+                                // Already displayed above, so skip here or add another row if desired.
+                            } else {
+                                // Handle other summary lines like 'macro avg', 'weighted avg'
+                                const metrics = data.classification_report[className];
+                                if (metrics && typeof metrics === 'object') { // Ensure it's an object
+                                    const row = reportTableBody.insertRow();
+                                    row.insertCell().textContent = className;
+                                    row.insertCell().textContent = metrics.precision !== undefined ? metrics.precision.toFixed(4) : 'N/A';
+                                    row.insertCell().textContent = metrics.recall !== undefined ? metrics.recall.toFixed(4) : 'N/A';
+                                    row.insertCell().textContent = metrics['f1-score'] !== undefined ? metrics['f1-score'].toFixed(4) : 'N/A';
+                                    row.insertCell().textContent = metrics.support !== undefined ? metrics.support : 'N/A';
+                                }
+                            }
+                        }
+                    } else {
+                        const row = reportTableBody.insertRow();
+                        const cell = row.insertCell();
+                        cell.colSpan = 5;
+                        cell.textContent = 'Classification report data not available.';
+                    }
+
+                } else {
+                    metricsContainer.style.display = 'none';
+                    errorDiv.textContent = `Error: ${data.error || 'Could not load model performance metrics.'}`;
+                    errorDiv.style.display = 'block';
+                }
+            } catch (error) {
+                metricsContainer.style.display = 'none';
+                errorDiv.textContent = `Error: ${error.message}`;
+                errorDiv.style.display = 'block';
+            }
+        }
+
+        // --- Prediction History & What-if Scenarios Logic ---
+        function getPredictionHistory() {
+            return JSON.parse(localStorage.getItem('predictionHistory')) || [];
+        }
+
+        function savePredictionToHistory(inputs, result) {
+            let history = getPredictionHistory();
+            const timestamp = new Date().toLocaleString();
+            history.unshift({ timestamp, inputs, result }); // Add to the beginning
+            if (history.length > MAX_HISTORY_ITEMS) {
+                history = history.slice(0, MAX_HISTORY_ITEMS); // Keep only the last N items
+            }
+            localStorage.setItem('predictionHistory', JSON.stringify(history));
+        }
+
+        function renderPredictionHistory() {
+            const historyList = document.getElementById('predictionHistoryList');
+            const noHistoryMsg = document.getElementById('noHistoryMessage');
+            const clearHistoryBtn = document.getElementById('clearHistoryBtn');
+            historyList.innerHTML = ''; // Clear current list
+
+            const history = getPredictionHistory();
+
+            if (history.length === 0) {
+                noHistoryMsg.style.display = 'block';
+                clearHistoryBtn.style.display = 'none';
+                return;
+            }
+            noHistoryMsg.style.display = 'none';
+            clearHistoryBtn.style.display = 'block';
+
+            history.forEach((item, index) => {
+                const listItem = document.createElement('li');
+                listItem.className = 'list-group-item list-group-item-action flex-column align-items-start';
+                listItem.style.cursor = 'pointer';
+                
+                const detailsDiv = document.createElement('div');
+                detailsDiv.className = 'd-flex w-100 justify-content-between';
+                const title = document.createElement('h5');
+                title.className = 'mb-1';
+                title.textContent = `Prediction: ${item.result.prediction_text}`;
+                const timeSmall = document.createElement('small');
+                timeSmall.textContent = item.timestamp;
+                detailsDiv.appendChild(title);
+                detailsDiv.appendChild(timeSmall);
+
+                const probP = document.createElement('p');
+                probP.className = 'mb-1';
+                probP.textContent = `Probability of Churn: ${item.result.churn_probability.toFixed(4)}`;
+                
+                const inputsSmall = document.createElement('small');
+                inputsSmall.className = 'text-muted';
+                const inputEntries = Object.entries(item.inputs).map(([key, value]) => `${key}: ${value}`).join(', ');
+                inputsSmall.textContent = `Inputs: ${inputEntries}`;
+
+                listItem.appendChild(detailsDiv);
+                listItem.appendChild(probP);
+                listItem.appendChild(inputsSmall);
+
+                listItem.addEventListener('click', () => {
+                    populateFormWithHistory(item.inputs);
+                    // Scroll to the top of the form for better UX
+                    document.getElementById('churnForm').scrollIntoView({ behavior: 'smooth' });
+                });
+                historyList.appendChild(listItem);
+            });
+        }
+
+        function populateFormWithHistory(inputs) {
+            const form = document.getElementById('churnForm');
+            for (const key in inputs) {
+                if (form.elements[key]) {
+                    // Special handling for select elements if values are stored as numbers but form expects strings
+                    if ((key === 'HasCrCard' || key === 'IsActiveMember') && typeof inputs[key] === 'number') {
+                         form.elements[key].value = inputs[key].toString();
+                    } else {
+                        form.elements[key].value = inputs[key];
+                    }
+                }
+            }
+            // Remove was-validated class to reset validation state if any
+            form.classList.remove('was-validated');
+            // Clear previous prediction results when form is populated for a new what-if scenario
+            document.getElementById('predictionResult').style.display = 'none';
+            document.getElementById('shapExplanation').style.display = 'none';
+        }
+
+        document.getElementById('clearHistoryBtn').addEventListener('click', () => {
+            if (confirm('Are you sure you want to clear the prediction history?')) {
+                localStorage.removeItem('predictionHistory');
+                renderPredictionHistory();
+            }
+        });
+
+        // Load initial data on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchGlobalFeatureImportance();
+            fetchModelPerformance();
+            renderPredictionHistory(); // Render history on load
+        });
     </script>
 </body>
 </html>
