@@ -7,9 +7,8 @@ __pycache__/
 Bank Customer Churn Prediction.csv
 
 # Model files (can be regenerated)
-*.pkl
-# Uncomment if you want to include the trained model in your repository
-# !churn_model.pkl
+# *.pkl # Commented out to allow churn_model.pkl
+!churn_model.pkl # Ensure churn_model.pkl is NOT ignored
 
 # Generated visualizations (can be regenerated)
 # Uncomment if you want to include the visualization in your repository
