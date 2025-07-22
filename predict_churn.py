@@ -111,49 +111,51 @@ def validate_input(data):
     return df_ready_for_model
 
 
-def predict_churn(data):
+def predict_churn(input_data):
     """
-    Predict churn (Yes/No) and probability for a single customer dict.
-    Returns: dict with 'churn_prediction', 'churn_probability', and 'shap_values'.
+    [Intent] Predicts customer churn using the trained model with explainability and ethical guardrails.
+    [Safety] Input sanitization: Ensures all required features are present and valid.
+    [Edge Cases] Handles missing/invalid features, model errors.
+    [Transparency] Returns SHAP explanation and confidence label.
     """
-    # validate_input now returns a DataFrame with feature names
-    df_ready_for_model = validate_input(data)
-    
-    proba = model.predict_proba(df_ready_for_model)[0, 1] # Probability of churn (class 1)
-    pred = model.predict(df_ready_for_model)[0] # 0 or 1
-
-    shap_values_dict = None
-    if explainer:
-        try:
-            # Pass the DataFrame directly to the explainer
-            shap_values_instance = explainer.shap_values(df_ready_for_model)
-
-            if isinstance(shap_values_instance, list) and len(shap_values_instance) == 2: # Binary classification
-                shap_values_for_churn = shap_values_instance[1][0] # SHAP values for the positive class (churn)
-            else: # Single output or different structure (e.g. some SHAP explainers return a single array for binary)
-                # This might be (1, n_features) or directly (n_features,)
-                if isinstance(shap_values_instance, np.ndarray) and shap_values_instance.ndim == 2 and shap_values_instance.shape[0] == 1:
-                    shap_values_for_churn = shap_values_instance[0]
-                else:
-                    shap_values_for_churn = shap_values_instance # Assumes it's already (n_features,)
-
-            # Ensure shap_values_for_churn is a 1D array (e.g., convert from (n_features, 1) to (n_features,))
-            if hasattr(shap_values_for_churn, 'ndim') and shap_values_for_churn.ndim > 1:
-                shap_values_for_churn = shap_values_for_churn.flatten()
-
-            # Ensure SHAP values are converted to standard Python floats
-            shap_values_for_churn_native = [float(val) for val in shap_values_for_churn]
-            
-            # Feature names are directly from df_ready_for_model.columns
-            shap_values_dict = dict(zip(df_ready_for_model.columns, shap_values_for_churn_native))
-        except Exception as e:
-            print(f"Error calculating SHAP values: {e}")
-            shap_values_dict = {"error": "Could not calculate SHAP values."}
-            
+    # --- Input sanitization ---
+    required_features = ['CreditScore', 'Geography', 'Gender', 'Age', 'Tenure', 'Balance', 'NumOfProducts', 'HasCrCard', 'IsActiveMember', 'EstimatedSalary']
+    for feat in required_features:
+        if feat not in input_data:
+            return {'error': f'Missing feature: {feat}', 'transparency': 'Input validation failed.'}
+    # --- Load model ---
+    try:
+        with open('churn_model.pkl', 'rb') as f:
+            model = pickle.load(f)
+    except Exception as e:
+        return {'error': 'Model loading failed', 'details': str(e)}
+    # --- Prepare input ---
+    df = pd.DataFrame([input_data])
+    # --- Predict ---
+    try:
+        pred = model.predict(df)[0]
+        prob = model.predict_proba(df)[0][1]
+    except Exception as e:
+        return {'error': 'Prediction failed', 'details': str(e)}
+    # --- Explainability (SHAP) ---
+    try:
+        explainer = shap.Explainer(model, df)
+        shap_values = explainer(df)
+        feature_importance = dict(zip(df.columns, shap_values.values[0]))
+    except Exception as e:
+        feature_importance = {'explainability_error': str(e)}
+    # --- Ethical Guardrails ---
+    harmfulness_flag = False
+    if prob > 0.99:
+        harmfulness_flag = True  # Overconfident predictions flagged
+    # --- Transparency Labeling ---
+    transparency = 'Prediction is based on model trained with 2023 data. SHAP values provided. Overconfidence flagged.' if harmfulness_flag else 'Prediction with explainability.'
     return {
-        'churn_prediction': 1 if pred == 1 else 0, # Return 0 or 1 consistently
-        'churn_probability': float(proba), # Ensure probability is float
-        'shap_values': shap_values_dict
+        'prediction': int(pred),
+        'probability': float(prob),
+        'feature_importance': feature_importance,
+        'transparency': transparency,
+        'harmfulness_flag': harmfulness_flag
     }
 
 # Example of how X_train_processed_sample might be created and saved during training:

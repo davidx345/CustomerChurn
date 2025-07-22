@@ -2,6 +2,7 @@
 app.py
 Flask API for customer churn prediction. Provides /predict endpoint for JSON input.
 """
+import logging
 from flask import Flask, request, jsonify, render_template, send_file
 from predict_churn import predict_churn, get_feature_names_after_preprocessing # Import the new function
 import pandas as pd
@@ -9,6 +10,16 @@ import io
 import joblib # For loading the model bundle to get feature importances
 
 app = Flask(__name__)
+
+# Logging setup
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s %(levelname)s %(message)s',
+    handlers=[
+        logging.FileHandler('app.log'),
+        logging.StreamHandler()
+    ]
+)
 
 # Load model bundle once to get model, explainer, and feature names for global importance
 try:
@@ -38,15 +49,18 @@ def index():
 def predict():
     try:
         data = request.get_json()
+        logging.info(f"/predict endpoint called with data: {data}")
         if not data:
+            logging.warning("No input data provided to /predict endpoint.")
             return jsonify({'error': 'No input data provided'}), 400
         if not isinstance(data, dict):
+            logging.warning("Invalid data format for single prediction at /predict endpoint.")
             return jsonify({'error': 'Invalid data format for single prediction. Expected a JSON object.'}), 400
-        
-        # predict_churn now returns shap_values as well
-        result = predict_churn(data) 
+        result = predict_churn(data)
+        logging.info(f"Prediction result: {result}")
         return jsonify(result)
     except Exception as e:
+        logging.error(f"Error in /predict endpoint: {e}")
         return jsonify({'error': str(e)}), 400
 
 @app.route('/api/feature_importance', methods=['GET'])
@@ -107,67 +121,50 @@ def model_performance():
 def batch_predict():
     try:
         if 'csvFile' not in request.files:
+            logging.warning("No CSV file provided to /batch_predict endpoint.")
             return jsonify({'error': 'No CSV file provided'}), 400
-        
         file = request.files['csvFile']
-        
         if file.filename == '':
+            logging.warning("No selected file in /batch_predict endpoint.")
             return jsonify({'error': 'No selected file'}), 400
-
         if file and file.filename.endswith('.csv'):
             try:
                 df = pd.read_csv(file)
             except Exception as e:
+                logging.error(f"Error reading CSV file: {e}")
                 return jsonify({'error': f'Error reading CSV file: {str(e)}'}), 400
-
             if df.empty:
+                logging.warning("CSV file is empty in /batch_predict endpoint.")
                 return jsonify({'error': 'CSV file is empty'}), 400
-
             predictions = []
-            # Check if required columns are present (optional, but good practice)
-            # required_cols = ['CreditScore', 'Age', 'Tenure', 'Balance', 'NumOfProducts', 'HasCrCard', 'IsActiveMember', 'EstimatedSalary', 'Geography', 'Gender']
-            # missing_cols = [col for col in required_cols if col not in df.columns]
-            # if missing_cols:
-            #     return jsonify({'error': f'Missing columns in CSV: {", ".join(missing_cols)}'}), 400
-
             for _, row in df.iterrows():
                 try:
-                    # Convert row to dictionary, handling potential type issues
                     data_dict = row.to_dict()
-                    # Ensure numeric types where appropriate, similar to single predict
                     for key in ['CreditScore', 'Age', 'Tenure', 'Balance', 'NumOfProducts', 'HasCrCard', 'IsActiveMember', 'EstimatedSalary']:
                         if key in data_dict and data_dict[key] is not None:
                             try:
                                 data_dict[key] = pd.to_numeric(data_dict[key])
                             except ValueError:
-                                # Keep original if conversion fails, predict_churn might handle it or raise error
-                                pass 
-                    
+                                pass
                     prediction_result = predict_churn(data_dict)
-                    # Add original data along with prediction
                     output_row = row.to_dict()
                     output_row['ChurnPrediction'] = prediction_result.get('churn_prediction', 'Error')
                     output_row['ChurnProbability'] = prediction_result.get('churn_probability', 'Error')
                     predictions.append(output_row)
                 except Exception as e:
-                    # If a single row fails, add error info for that row
                     error_row = row.to_dict()
                     error_row['ChurnPrediction'] = 'Error'
                     error_row['ChurnProbability'] = str(e)
+                    logging.error(f"Error in batch prediction for row: {error_row} Exception: {e}")
                     predictions.append(error_row)
-            
             output_df = pd.DataFrame(predictions)
-            
-            # Create a CSV in memory
             csv_buffer = io.StringIO()
             output_df.to_csv(csv_buffer, index=False)
-            
-            # Create a BytesIO buffer for sending the file
             mem_file = io.BytesIO()
             mem_file.write(csv_buffer.getvalue().encode('utf-8'))
             mem_file.seek(0)
             csv_buffer.close()
-            
+            logging.info("Batch prediction completed successfully.")
             return send_file(
                 mem_file,
                 mimetype='text/csv',
@@ -175,10 +172,17 @@ def batch_predict():
                 download_name='batch_predictions.csv'
             )
         else:
+            logging.warning("Invalid file type uploaded to /batch_predict endpoint.")
             return jsonify({'error': 'Invalid file type. Please upload a .csv file'}), 400
-            
     except Exception as e:
+        logging.error(f"Error in /batch_predict endpoint: {e}")
         return jsonify({'error': str(e)}), 400
+
+# Error handler for unhandled exceptions
+@app.errorhandler(Exception)
+def handle_exception(e):
+    logging.error(f"Unhandled exception: {e}")
+    return jsonify({'error': 'Internal server error', 'details': str(e)}), 500
 
 # if __name__ == '__main__':
 #     app.run(debug=True) # Commented out for production deployment

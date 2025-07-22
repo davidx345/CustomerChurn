@@ -1,0 +1,16 @@
+# Development dependencies for code quality, testing, and explainability
+# [Intent] Development tools for linting, testing, security scanning, and debugging
+# [DevOps] Code quality enforcement and automated testing
+
+flake8==6.1.0
+black==23.12.0         # Code formatting
+pytest==7.4.3
+pytest-cov==4.1.0     # Test coverage
+pytest-mock==3.12.0   # Mocking for tests
+bandit==1.7.5          # Security linting
+safety==2.3.5          # Security vulnerability scanning
+pre-commit==3.6.0      # Git hooks
+mypy==1.7.1            # Type checking
+shap==0.44.1
+locust==2.17.0         # Load testing
+responses==0.24.1      # HTTP request mocking

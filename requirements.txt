@@ -1,9 +1,22 @@
-flask
-pandas
-scikit-learn
-joblib
-matplotlib
-seaborn
-openpyxl
-shap
-gunicorn
+# Updated requirements.txt with better versioning and additional packages
+# [Intent] Production-ready dependencies with version pinning for reproducible builds
+# [DevOps] Explicit versioning for CI/CD and containerization
+# [Security] Latest stable versions as of 2025
+
+Flask==3.0.0
+pandas==2.1.4
+scikit-learn==1.3.2
+joblib==1.3.2
+matplotlib==3.8.2
+seaborn==0.13.0
+openpyxl==3.1.2
+shap==0.44.1
+gunicorn==21.2.0
+
+# Additional production packages
+python-dotenv==1.0.0  # Environment variable management
+psutil==5.9.6         # System monitoring
+structlog==23.2.0     # Structured logging
+prometheus-client==0.19.0  # Metrics collection
+redis==5.0.1          # Caching (optional)
+celery==5.3.4         # Task queue (optional)

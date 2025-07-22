@@ -295,8 +295,12 @@
 
                 if (response.ok) {
                     resultDiv.className = 'mt-3 alert alert-success';
-                    let predictionText = result.churn_prediction === 1 ? "Likely to Churn" : "Unlikely to Churn";
-                    resultDiv.innerHTML = `<strong>Prediction:</strong> ${predictionText} (Probability: ${result.churn_probability.toFixed(4)})`;
+                    // Support both old and new API keys for backward compatibility
+                    let predictionText = (result.prediction !== undefined ? (result.prediction === 1 ? "Likely to Churn" : "Unlikely to Churn") : (result.churn_prediction === 1 ? "Likely to Churn" : "Unlikely to Churn"));
+                    let probability = result.probability !== undefined ? result.probability : result.churn_probability;
+                    let transparency = result.transparency ? `<br><span class='badge badge-info'>${result.transparency}</span>` : '';
+                    let harmfulness = result.harmfulness_flag ? `<br><span class='badge badge-danger'>Overconfident prediction flagged</span>` : '';
+                    resultDiv.innerHTML = `<strong>Prediction:</strong> ${predictionText} (Probability: ${probability !== undefined ? probability.toFixed(4) : 'N/A'})${transparency}${harmfulness}`;
                     
                     // Save to history
                     savePredictionToHistory(data, { 
@@ -306,12 +310,13 @@
                     });
                     renderPredictionHistory();
 
-                    // SHAP Values Chart
-                    if (result.shap_values && typeof result.shap_values === 'object' && !result.shap_values.error) {
+                    // SHAP/Feature Importance Chart (support both new and old API keys)
+                    let featureImp = result.feature_importance || result.shap_values;
+                    if (featureImp && typeof featureImp === 'object' && !featureImp.error) {
                         shapDiv.style.display = 'block';
-                        const shapFeatures = Object.keys(result.shap_values);
-                        const shapValues = Object.values(result.shap_values);
-                        
+                        document.getElementById('shapChart').style.display = 'block';
+                        const shapFeatures = Object.keys(featureImp);
+                        const shapValues = Object.values(featureImp);
                         const shapCtx = document.getElementById('shapChart').getContext('2d');
                         if (shapChartInstance) {
                             shapChartInstance.destroy(); 
@@ -321,20 +326,21 @@
                             data: {
                                 labels: shapFeatures,
                                 datasets: [{
-                                    label: 'SHAP Value',
+                                    label: 'Feature Impact',
                                     data: shapValues,
                                     backgroundColor: shapValues.map(val => val > 0 ? 'rgba(255, 99, 132, 0.7)' : 'rgba(75, 192, 192, 0.7)'),
                                     borderColor: shapValues.map(val => val > 0 ? 'rgba(255, 99, 132, 1)' : 'rgba(75, 192, 192, 1)'),
                                     borderWidth: 1
                                 }]
-                            },                            options: {
+                            },
+                            options: {
                                 indexAxis: 'y',
                                 scales: {
                                     x: {
                                         beginAtZero: false, 
                                         title: {
                                             display: true,
-                                            text: 'SHAP Value (Impact on Model Output)'
+                                            text: 'Feature Impact (SHAP Value)'
                                         }
                                     },
                                     y: {
@@ -358,10 +364,10 @@
                                 }
                             }
                         });
-                    } else if (result.shap_values && result.shap_values.error) {
+                    } else if (featureImp && featureImp.error) {
                         shapDiv.style.display = 'block';
                         document.getElementById('shapChart').style.display = 'none'; 
-                        shapDiv.innerHTML = `<p class="alert alert-warning">Could not display SHAP values: ${result.shap_values.error}</p>`; 
+                        shapDiv.innerHTML = `<p class="alert alert-warning">Could not display feature importance: ${featureImp.error}</p>`; 
                     } else {
                         shapDiv.style.display = 'none';
                     }
